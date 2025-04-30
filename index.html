@@ -1,0 +1,133 @@
+
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Source Code Viewer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"></link>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+        }
+        .code-container {
+            background-color: #1e1e1e;
+            color: #dcdcdc;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            overflow-x: auto;
+            position: relative;
+        }
+        .code-container pre {
+            margin: 0;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        .line-numbers {
+            counter-reset: line;
+        }
+        .line-numbers code {
+            display: block;
+        }
+        .line-numbers code:before {
+            counter-increment: line;
+            content: counter(line);
+            display: inline-block;
+            width: 2rem;
+            margin-right: 1rem;
+            text-align: right;
+            color: #888;
+        }
+        .copy-button {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background-color: #4caf50;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 0.25rem;
+            cursor: pointer;
+        }
+        .copy-button:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+
+    <header class="bg-gradient-to-r from-blue-500 to-purple-600 text-white p-6 flex justify-between items-center shadow-lg">
+        <h1 class="text-3xl font-bold">Source Code Viewer</h1>
+    </header>
+
+    <main class="container mx-auto p-6">
+        <section class="mb-8">
+            <h2 class="text-2xl font-semibold mb-4">Enter Website URL</h2>
+            <div class="bg-white p-8 rounded-lg shadow-lg">
+                <form id="urlForm" class="space-y-6">
+                    <div>
+                        <label for="urlInput" class="block text-sm font-medium text-gray-700">Website URL</label>
+                        <input type="url" id="urlInput" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm" placeholder="https://example.com">
+                    </div>
+                    <button type="submit" class="w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white py-2 rounded-md hover:from-blue-600 hover:to-purple-700">Fetch Source Code</button>
+                </form>
+            </div>
+        </section>
+
+        <section>
+            <h2 class="text-2xl font-semibold mb-4">Source Code</h2>
+            <div class="code-container">
+                <button class="copy-button" onclick="copyToClipboard()">Copy</button>
+                <pre id="codeDisplay" class="line-numbers"><code>// The source code will be displayed here...</code></pre>
+            </div>
+        </section>
+    </main>
+
+    <footer class="bg-gray-800 text-white p-6 mt-8">
+        <div class="container mx-auto text-center">
+            <p>Source Code Viewer - Credit by Sultan</p>
+        </div>
+    </footer>
+
+    <script>
+        document.getElementById('urlForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const urlInput = document.getElementById('urlInput');
+            const codeDisplay = document.getElementById('codeDisplay');
+
+            if (!urlInput.value) {
+                alert('Please enter a URL.');
+                return;
+            }
+
+            fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(urlInput.value)}`)
+                .then(response => response.json())
+                .then(data => {
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(data.contents, 'text/html');
+                    const code = doc.documentElement.outerHTML;
+                    codeDisplay.textContent = code;
+                    hljs.highlightBlock(codeDisplay);
+                })
+                .catch(error => {
+                    console.error('Error fetching the source code:', error);
+                    codeDisplay.textContent = 'Error fetching the source code.';
+                });
+        });
+
+        function copyToClipboard() {
+            const codeDisplay = document.getElementById('codeDisplay');
+            const range = document.createRange();
+            range.selectNode(codeDisplay);
+            window.getSelection().removeAllRanges();
+            window.getSelection().addRange(range);
+            document.execCommand('copy');
+            window.getSelection().removeAllRanges();
+            alert('Code copied to clipboard!');
+        }
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.7.2/highlight.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.7.2/styles/default.min.css">
+</body>
+</html>
